@@ -1,55 +1,39 @@
-plugins {
-	id 'fabric-loom' version '1.6.+'
-	id 'maven-publish'
-}
+name: Build Hopper Schematic Mod
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
+on:
+  push:
+    branches: [ main ]
 
-archivesBaseName = project.archives_base_name
-version = project.mod_version
-group = project.maven_group
-
-repositories {
-	mavenCentral()
-	maven { url "https://maven.terraformersmc.com/releases" }
-	maven { url "https://masa.dy.fi/maven" }
-}
-
-dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
-}
-
-jar {
-	from "LICENSE" 
-	manifest {
-		attributes(
-			"Specification-Title": "Hopper Schematic",
-			"Specification-Version": "1",
-			"Implementation-Title": project.name,
-			"Implementation-Version": project.version,
-			"Implementation-Vendor": project.maven_group,
-			"Timestamp": System.currentTimeMillis()
-		)
-	}
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
-		}
-	}
-	repositories {
-		local {
-			url = uri('file://' + file("$projectDir/../maven").absolutePath)
-		}
-	}
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Make gradlew executable
+      run: chmod +x gradlew
+    
+    - name: Build with Gradle
+      run: ./gradlew build
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/libs/hopper-schematic-*.jar
+        tag_name: v1.0.0
+        name: Hopper Schematic Mod v1.0.0
+        body: |
+          Fabric mod for Minecraft 1.21.11
+          Paste hopper contents from Litematica schematics
+          
+          Extract and drop the JAR in your .minecraft/mods/ folder
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
