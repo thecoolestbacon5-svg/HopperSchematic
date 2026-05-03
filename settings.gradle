@@ -1,0 +1,61 @@
+@echo off
+setlocal enabledelayedexpansion
+
+echo.
+echo ========================================
+echo   Hopper Schematic Mod Builder
+echo   Minecraft 1.21.11
+echo ========================================
+echo.
+
+REM Check if Java is installed
+java -version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Java not found
+    echo Please install Java 21+: https://www.oracle.com/java/technologies/downloads/
+    pause
+    exit /b 1
+)
+
+echo [OK] Java found
+echo.
+echo Starting build... (this will take 5-10 minutes first time)
+echo Please wait...
+echo.
+
+REM Call gradlew - it will download Gradle automatically
+call gradlew.bat build
+
+if %errorlevel% equ 0 (
+    echo.
+    echo ========================================
+    echo   BUILD SUCCESS! ✅
+    echo ========================================
+    echo.
+    echo Your JAR is at:
+    echo   %cd%\build\libs\hopper-schematic-1.0.0.jar
+    echo.
+    echo Next steps:
+    echo 1. Find the JAR file above
+    echo 2. Copy it to: %%APPDATA%%\.minecraft\mods\
+    echo 3. Launch Minecraft 1.21.11 with Fabric
+    echo 4. Done! 🎮
+    echo.
+    pause
+) else (
+    echo.
+    echo ========================================
+    echo   BUILD FAILED ❌
+    echo ========================================
+    echo.
+    echo Check the error messages above.
+    echo Common fixes:
+    echo - Make sure internet is working
+    echo - Close and try again
+    echo - Delete the '.gradle' folder and retry
+    echo.
+    pause
+    exit /b 1
+)
+
+endlocal
