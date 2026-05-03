@@ -1,61 +1,39 @@
-@echo off
-setlocal enabledelayedexpansion
+name: Build Hopper Schematic Mod
 
-echo.
-echo ========================================
-echo   Hopper Schematic Mod Builder
-echo   Minecraft 1.21.11
-echo ========================================
-echo.
+on:
+  push:
+    branches: [ main ]
 
-REM Check if Java is installed
-java -version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Java not found
-    echo Please install Java 21+: https://www.oracle.com/java/technologies/downloads/
-    pause
-    exit /b 1
-)
-
-echo [OK] Java found
-echo.
-echo Starting build... (this will take 5-10 minutes first time)
-echo Please wait...
-echo.
-
-REM Call gradlew - it will download Gradle automatically
-call gradlew.bat build
-
-if %errorlevel% equ 0 (
-    echo.
-    echo ========================================
-    echo   BUILD SUCCESS! ✅
-    echo ========================================
-    echo.
-    echo Your JAR is at:
-    echo   %cd%\build\libs\hopper-schematic-1.0.0.jar
-    echo.
-    echo Next steps:
-    echo 1. Find the JAR file above
-    echo 2. Copy it to: %%APPDATA%%\.minecraft\mods\
-    echo 3. Launch Minecraft 1.21.11 with Fabric
-    echo 4. Done! 🎮
-    echo.
-    pause
-) else (
-    echo.
-    echo ========================================
-    echo   BUILD FAILED ❌
-    echo ========================================
-    echo.
-    echo Check the error messages above.
-    echo Common fixes:
-    echo - Make sure internet is working
-    echo - Close and try again
-    echo - Delete the '.gradle' folder and retry
-    echo.
-    pause
-    exit /b 1
-)
-
-endlocal
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Make gradlew executable
+      run: chmod +x gradlew
+    
+    - name: Build with Gradle
+      run: ./gradlew build
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/libs/hopper-schematic-*.jar
+        tag_name: v1.0.0
+        name: Hopper Schematic Mod v1.0.0
+        body: |
+          Fabric mod for Minecraft 1.21.11
+          Paste hopper contents from Litematica schematics
+          
+          Extract and drop the JAR in your .minecraft/mods/ folder
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
